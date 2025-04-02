@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
       home: HomeScreen(),
     );
@@ -28,7 +28,7 @@ class HomeScreen extends StatelessWidget {
       backgroundColor: Color(int.parse("0xFF009da7")),
       appBar: AppBar(
         title: const Text("Smash League"),
-        titleTextStyle: TextStyle(color: Colors.white, fontSize: 25),
+        titleTextStyle: const TextStyle(color: Colors.white, fontSize: 25),
         backgroundColor: Color(int.parse("0xFF009da7")),
         actions: [
           IconButton(
@@ -52,7 +52,7 @@ class HomeScreen extends StatelessWidget {
             _buildButton("SUPER 8", Colors.blue, context, () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => Super8Screen()),
+                MaterialPageRoute(builder: (context) => const Super8Screen()),
               );
             }),
           ],
@@ -65,7 +65,7 @@ class HomeScreen extends StatelessWidget {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: color,
-        padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30),
         ),
@@ -73,7 +73,7 @@ class HomeScreen extends StatelessWidget {
       onPressed: onPressed,
       child: Text(
         text,
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
       ),
     );
   }
@@ -83,10 +83,10 @@ class Super8Screen extends StatefulWidget {
   const Super8Screen({super.key});
 
   @override
-  _Super8ScreenState createState() => _Super8ScreenState();
+  Super8ScreenState createState() => Super8ScreenState();
 }
 
-class _Super8ScreenState extends State<Super8Screen> {
+class Super8ScreenState extends State<Super8Screen> {
   List<String> players = [];
   final TextEditingController controller = TextEditingController();
   Database? database;
@@ -147,6 +147,7 @@ class _Super8ScreenState extends State<Super8Screen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Super 8"),
+        titleTextStyle: const TextStyle(color: Colors.white, fontSize: 25),
         backgroundColor: Color(int.parse("0xFF009da7")),
       ),
       body: Padding(
@@ -155,7 +156,7 @@ class _Super8ScreenState extends State<Super8Screen> {
           children: [
             TextField(
               controller: controller,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: "Nome do Jogador",
                 border: OutlineInputBorder(),
               ),
@@ -173,7 +174,7 @@ class _Super8ScreenState extends State<Super8Screen> {
                   return ListTile(
                     title: Text(players[index]),
                     trailing: IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
+                      icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () => _removePlayer(index),
                     ),
                   );
@@ -218,10 +219,10 @@ class MatchesScreen extends StatefulWidget {
   const MatchesScreen({super.key, required this.matches});
 
   @override
-  _MatchesScreenState createState() => _MatchesScreenState();
+  MatchesScreenState createState() => MatchesScreenState();
 }
 
-class _MatchesScreenState extends State<MatchesScreen> {
+class MatchesScreenState extends State<MatchesScreen> {
   final Map<String, String> scores = {};
   final Map<String, int> playerPoints = {};
 
@@ -235,11 +236,11 @@ class _MatchesScreenState extends State<MatchesScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("Registrar Resultado"),
+          title: const Text("Registrar Resultado"),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(match, style: TextStyle(fontWeight: FontWeight.bold)),
+              Text(match, style: const TextStyle(fontWeight: FontWeight.bold)),
               TextField(
                 controller: team1Controller,
                 keyboardType: TextInputType.number,
@@ -257,7 +258,7 @@ class _MatchesScreenState extends State<MatchesScreen> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text("Cancelar"),
+              child: const Text("Cancelar"),
             ),
             TextButton(
               onPressed: () {
@@ -268,7 +269,7 @@ class _MatchesScreenState extends State<MatchesScreen> {
                 });
                 Navigator.pop(context);
               },
-              child: Text("Salvar"),
+              child: const Text("Salvar"),
             ),
           ],
         );
@@ -304,13 +305,13 @@ class _MatchesScreenState extends State<MatchesScreen> {
         children: [
           Expanded(
             child: ListView.builder(
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               itemCount: widget.matches.length,
               itemBuilder: (context, index) {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Rodada ${index + 1}", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    Text("Rodada ${index + 1}", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 10),
                     Column(
                       children: widget.matches[index].map((game) {
@@ -321,7 +322,7 @@ class _MatchesScreenState extends State<MatchesScreen> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             title: Text(game),
                             subtitle: scores.containsKey(game) ? Text("Resultado: ${scores[game]}") : null,
-                            trailing: Icon(Icons.edit, color: Colors.blue),
+                            trailing: const Icon(Icons.edit, color: Colors.blue),
                             onTap: () => _showScoreDialog(game),
                           ),
                         );
@@ -336,7 +337,7 @@ class _MatchesScreenState extends State<MatchesScreen> {
           ElevatedButton(
             onPressed: _finalizeTournament,
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            child: Text("Finalizar"),
+            child: const Text("Finalizar"),
           ),
         ],
       ),
