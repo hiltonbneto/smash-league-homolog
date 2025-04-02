@@ -147,7 +147,7 @@ class Super8ScreenState extends State<Super8Screen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Super 8"),
-        titleTextStyle: const TextStyle(color: Colors.white, fontSize: 25),
+        titleTextStyle: const TextStyle(color: Colors.white, fontSize: 24),
         backgroundColor: Color(int.parse("0xFF009da7")),
       ),
       body: Padding(
@@ -172,7 +172,7 @@ class Super8ScreenState extends State<Super8Screen> {
                 itemCount: players.length,
                 itemBuilder: (context, index) {
                   return ListTile(
-                    title: Text(players[index]),
+                    title: Text("${index+1} - ${players[index]}"),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () => _removePlayer(index),
@@ -182,15 +182,25 @@ class Super8ScreenState extends State<Super8Screen> {
               ),
             ),
             if (players.length == 8)
-              ElevatedButton(
-                onPressed: () {
-                  List<List<String>> partidas = _generateMatches(players);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => MatchesScreen(matches: partidas)),
-                  );
-                },
-                child: const Text("Iniciar Jogos"),
+
+              SizedBox(
+                width: double.infinity, // Faz o botão ocupar toda a largura disponível
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0), // Adiciona padding no eixo X
+                  child: ElevatedButton(
+                    onPressed: () {
+                      List<List<String>> partidas = _generateMatches(players);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => MatchesScreen(matches: partidas)),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(int.parse("0xFF009da7")),
+                    ),
+                    child: const Text("Iniciar Jogos", style: TextStyle(color: Colors.white, fontSize: 19)),
+                  ),
+                ),
               ),
           ],
         ),
@@ -242,14 +252,16 @@ class MatchesScreenState extends State<MatchesScreen> {
             children: [
               Text(match, style: const TextStyle(fontWeight: FontWeight.bold)),
               TextField(
+                maxLength: 1,
                 controller: team1Controller,
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: "Pontos de ${teams[0]}",),
+                decoration: InputDecoration(labelText: "Pontos de ${teams[0]}", counterText: ""),
               ),
               TextField(
+                maxLength: 1,
                 controller: team2Controller,
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: "Pontos de ${teams[1]}",),
+                decoration: InputDecoration(labelText: "Pontos de ${teams[1]}", counterText: ""),
               ),
             ],
           ),
@@ -300,7 +312,10 @@ class MatchesScreenState extends State<MatchesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Jogos"), backgroundColor: Color(int.parse("0xFF009da7"))),
+      appBar: AppBar(title: const Text("Rodadas"),
+        titleTextStyle: const TextStyle(color: Colors.white, fontSize: 24),
+        backgroundColor: Color(int.parse("0xFF009da7")),
+      ),
       body: Column(
         children: [
           Expanded(
@@ -334,11 +349,20 @@ class MatchesScreenState extends State<MatchesScreen> {
               },
             ),
           ),
-          ElevatedButton(
-            onPressed: _finalizeTournament,
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            child: const Text("Finalizar"),
-          ),
+          if (_allGamesScored())
+            SizedBox(
+              width: double.infinity, // Faz o botão ocupar toda a largura disponível
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0), // Adiciona padding no eixo X
+                child: ElevatedButton(
+                  onPressed: _finalizeTournament,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                  ),
+                  child: const Text("Finalizar", style: TextStyle(color: Colors.white, fontSize: 20),),
+                ),
+              ),
+            )
         ],
       ),
     );
