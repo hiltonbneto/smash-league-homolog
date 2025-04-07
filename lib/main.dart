@@ -209,18 +209,48 @@ class Super8ScreenState extends State<Super8Screen> {
   }
 
   List<List<String>> _generateMatches(List<String> players) {
+    if (players.length != 8) throw ArgumentError("É necessário exatamente 8 jogadores.");
+
+    Set<String> usedPairs = {};
     List<List<String>> matches = [];
-    List<String> shuffledPlayers = List.from(players);
     Random random = Random();
-    for (int i = 0; i < 7; i++) {
-      shuffledPlayers.shuffle(random);
-      matches.add([
-        "${shuffledPlayers[0]} & ${shuffledPlayers[1]} vs ${shuffledPlayers[2]} & ${shuffledPlayers[3]}",
-        "${shuffledPlayers[4]} & ${shuffledPlayers[5]} vs ${shuffledPlayers[6]} & ${shuffledPlayers[7]}"
-      ]);
+
+    while (matches.length < 7) {
+      List<String> shuffled = List.from(players)..shuffle(random);
+      List<String> round = [];
+
+      String match1Team1 = "${shuffled[0]} & ${shuffled[1]}";
+      String match1Team2 = "${shuffled[2]} & ${shuffled[3]}";
+      String match2Team1 = "${shuffled[4]} & ${shuffled[5]}";
+      String match2Team2 = "${shuffled[6]} & ${shuffled[7]}";
+
+      // Cria as chaves de dupla
+      List<String> currentPairs = [
+        _pairKey(shuffled[0], shuffled[1]),
+        _pairKey(shuffled[2], shuffled[3]),
+        _pairKey(shuffled[4], shuffled[5]),
+        _pairKey(shuffled[6], shuffled[7]),
+      ];
+
+      // Verifica se alguma dessas duplas já foi usada
+      bool hasRepeatedPair = currentPairs.any((pair) => usedPairs.contains(pair));
+
+      if (!hasRepeatedPair) {
+        usedPairs.addAll(currentPairs);
+        round.add("$match1Team1\n$match1Team2");
+        round.add("$match2Team1\n$match2Team2");
+        matches.add(round);
+      }
     }
+
     return matches;
   }
+
+  String _pairKey(String a, String b) {
+    List<String> pair = [a, b]..sort();
+    return pair.join("-");
+  }
+
 }
 
 class MatchesScreen extends StatefulWidget {
@@ -240,7 +270,7 @@ class MatchesScreenState extends State<MatchesScreen> {
     TextEditingController team1Controller = TextEditingController(text: scores[match]?.split('-')[0] ?? '');
     TextEditingController team2Controller = TextEditingController(text: scores[match]?.split('-')[1] ?? '');
 
-    List<String> teams = match.split(" vs ");
+    List<String> teams = match.split("\n");
 
     showDialog(
       context: context,
