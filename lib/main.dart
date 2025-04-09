@@ -16,9 +16,7 @@ class Player {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is Player &&
-              runtimeType == other.runtimeType &&
-              id == other.id;
+      other is Player && runtimeType == other.runtimeType && id == other.id;
 
   @override
   int get hashCode => id.hashCode;
@@ -49,7 +47,6 @@ class Round {
 
   Round(this.number, this.matches);
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -170,14 +167,37 @@ class Super8ScreenState extends State<Super8Screen> {
   }
 
   Future<void> _addPlayer() async {
-    if (players.length < 8 && controller.text.isNotEmpty && database != null) {
+    final name = controller.text.trim();
+
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("O nome do jogador não pode estar vazio")),
+      );
+      return;
+    }
+
+    // Verifica se o nome já existe na lista atual
+    final exists = players
+        .any((player) => player.name.toLowerCase() == name.toLowerCase());
+    if (exists) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Este jogador já foi adicionado")),
+      );
+      return;
+    }
+
+    if (players.length < 8 && database != null) {
       await database!.insert(
         'players',
-        {'name': controller.text},
-        conflictAlgorithm: ConflictAlgorithm.replace,
+        {'name': name},
+        conflictAlgorithm: ConflictAlgorithm.ignore,
       );
       controller.clear();
       _loadPlayers();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Jogador '$name' adicionado com sucesso")),
+      );
     }
   }
 
@@ -211,7 +231,8 @@ class Super8ScreenState extends State<Super8Screen> {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                   child: Column(
                     children: [
                       TextField(
@@ -227,8 +248,14 @@ class Super8ScreenState extends State<Super8Screen> {
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           onPressed: _addPlayer,
-                          icon: const Icon(Icons.add, color: Colors.white,),
-                          label: const Text("Adicionar Jogador", style: TextStyle(color: Colors.white),),
+                          icon: const Icon(
+                            Icons.add,
+                            color: Colors.white,
+                          ),
+                          label: const Text(
+                            "Adicionar Jogador",
+                            style: TextStyle(color: Colors.white),
+                          ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF009da7),
                             padding: const EdgeInsets.symmetric(vertical: 14),
@@ -246,38 +273,39 @@ class Super8ScreenState extends State<Super8Screen> {
               Expanded(
                 child: players.isEmpty
                     ? const Center(
-                  child: Text(
-                    "Nenhum jogador adicionado ainda.",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                )
+                        child: Text(
+                          "Nenhum jogador adicionado ainda.",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      )
                     : ListView.builder(
-                  itemCount: players.length,
-                  itemBuilder: (context, index) {
-                    final player = players[index];
-                    return Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        itemCount: players.length,
+                        itemBuilder: (context, index) {
+                          final player = players[index];
+                          return Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 2,
+                            margin: const EdgeInsets.only(bottom: 10),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: const Color(0xFF009da7),
+                                child: Text(
+                                  "${index + 1}",
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                              title: Text(player.name),
+                              trailing: IconButton(
+                                icon:
+                                    const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () => _removePlayer(index),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                      elevation: 2,
-                      margin: const EdgeInsets.only(bottom: 10),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: const Color(0xFF009da7),
-                          child: Text(
-                            "${index + 1}",
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        title: Text(player.name),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _removePlayer(index),
-                        ),
-                      ),
-                    );
-                  },
-                ),
               ),
               if (players.length == 8)
                 Padding(
@@ -290,7 +318,8 @@ class Super8ScreenState extends State<Super8Screen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => MatchesScreen(matches: partidas),
+                            builder: (context) =>
+                                MatchesScreen(matches: partidas),
                           ),
                         );
                       },
@@ -342,9 +371,6 @@ class Super8ScreenState extends State<Super8Screen> {
 
     return matches;
   }
-
-
-
 }
 
 class MatchesScreen extends StatefulWidget {
@@ -416,7 +442,8 @@ class MatchesScreenState extends State<MatchesScreen> {
                     int.tryParse(team2Controller.text) ?? 0,
                   );
 
-                  scores[matchId] = "${team1Controller.text} - ${team2Controller.text}";
+                  scores[matchId] =
+                      "${team1Controller.text} - ${team2Controller.text}";
                 });
                 Navigator.pop(context);
               },
@@ -432,7 +459,8 @@ class MatchesScreenState extends State<MatchesScreen> {
     return "${team.player1.name} & ${team.player2.name}";
   }
 
-  void _updatePlayerPoints(Match match, int newPointsTeam1, int newPointsTeam2) {
+  void _updatePlayerPoints(
+      Match match, int newPointsTeam1, int newPointsTeam2) {
     final matchId = getMatchKey(match);
 
     // Se já havia um resultado registrado, removemos os pontos antigos
@@ -459,7 +487,6 @@ class MatchesScreenState extends State<MatchesScreen> {
       playerPoints[player] = (playerPoints[player] ?? 0) + newPointsTeam2;
     }
   }
-
 
   bool _allGamesScored() {
     return scores.length == widget.matches.length;
@@ -531,7 +558,8 @@ class MatchesScreenState extends State<MatchesScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.sports_tennis, color: Color(0xFF009da7)),
+                        const Icon(Icons.sports_tennis,
+                            color: Color(0xFF009da7)),
                         const SizedBox(width: 8),
                         Text(
                           "Rodada ${match1.round}",
@@ -589,7 +617,6 @@ class MatchesScreenState extends State<MatchesScreen> {
       ),
     );
   }
-
 }
 
 class LeaderboardScreen extends StatelessWidget {
@@ -604,7 +631,13 @@ class LeaderboardScreen extends StatelessWidget {
       ..sort((a, b) => b.value.compareTo(a.value));
 
     return Scaffold(
-        appBar: AppBar(title: const Text("Classificação Final", style: TextStyle(color: Colors.white),), backgroundColor: Color(int.parse("0xFF009da7")),),
+        appBar: AppBar(
+          title: const Text(
+            "Classificação Final",
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Color(int.parse("0xFF009da7")),
+        ),
         backgroundColor: Color(int.parse("0xFF009da7")),
         body: ListView.builder(
           itemCount: sortedPlayers.length,
@@ -618,15 +651,18 @@ class LeaderboardScreen extends StatelessWidget {
 
             switch (index) {
               case 0:
-                rankIcon = const Icon(Icons.emoji_events, color: Colors.amber, size: 30);
+                rankIcon = const Icon(Icons.emoji_events,
+                    color: Colors.amber, size: 30);
                 iconColor = Colors.amber;
                 break;
               case 1:
-                rankIcon = const Icon(Icons.emoji_events, color: Colors.grey, size: 26);
+                rankIcon = const Icon(Icons.emoji_events,
+                    color: Colors.grey, size: 26);
                 iconColor = Colors.grey;
                 break;
               case 2:
-                rankIcon = const Icon(Icons.emoji_events, color: Colors.brown, size: 24);
+                rankIcon = const Icon(Icons.emoji_events,
+                    color: Colors.brown, size: 24);
                 iconColor = Colors.brown;
                 break;
             }
@@ -634,7 +670,8 @@ class LeaderboardScreen extends StatelessWidget {
             return Card(
               elevation: 4,
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               child: ListTile(
                 leading: CircleAvatar(
                   backgroundColor: iconColor ?? Colors.blueGrey,
@@ -645,7 +682,8 @@ class LeaderboardScreen extends StatelessWidget {
                 ),
                 title: Text(
                   player.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 18),
                 ),
                 subtitle: Text(
                   "${index + 1}º lugar",
@@ -665,9 +703,6 @@ class LeaderboardScreen extends StatelessWidget {
               ),
             );
           },
-        )
-
-    );
+        ));
   }
 }
-
