@@ -1,3 +1,4 @@
+import 'package:hive/hive.dart';
 import 'package:smash_league/dto/match.dart';
 import 'package:flutter/material.dart';
 import 'package:smash_league/dto/player.dart';
@@ -6,8 +7,13 @@ import 'package:smash_league/screens/LeaderboardScreen.dart';
 
 class MatchesScreen extends StatefulWidget {
   final List<Match> matches;
+  final Box<Match> matchBox;
 
-  const MatchesScreen({super.key, required this.matches});
+  const MatchesScreen({
+    super.key,
+    required this.matches,
+    required this.matchBox,
+  });
 
   @override
   MatchesScreenState createState() => MatchesScreenState();
@@ -16,9 +22,29 @@ class MatchesScreen extends StatefulWidget {
 class MatchesScreenState extends State<MatchesScreen> {
   final Map<String, String> scores = {};
   final Map<Player, int> playerPoints = {};
+  late Box<Match> matchBox;
 
-  void _showScoreDialog(Match match) {
+  @override
+  void initState() {
+    super.initState();
+    _initHive();
+    _recalculatePointsFromSavedMatches();
+  }
+
+  Future<void> _initHive() async {
+    matchBox = Hive.box<Match>('matches');
+  }
+
+  void _showScoreDialog(Match match, int index) {
     String matchId = getMatchKey(match);
+
+    for (var matchBox in widget.matchBox.values) {
+      if (matchId == getMatchKey(matchBox)) {
+        if (matchBox.scoreTeam1 != null && matchBox.scoreTeam2 != null) {
+          scores[matchId] = "${matchBox.scoreTeam1} - ${matchBox.scoreTeam2}";
+        }
+      }
+    }
 
     TextEditingController team1Controller = TextEditingController(
         text: scores[matchId]?.split('-')[0].trim() ?? '');
@@ -65,7 +91,7 @@ class MatchesScreenState extends State<MatchesScreen> {
               child: const Text("Cancelar"),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 setState(() {
                   _updatePlayerPoints(
                     match,
@@ -74,8 +100,14 @@ class MatchesScreenState extends State<MatchesScreen> {
                   );
 
                   scores[matchId] =
-                  "${team1Controller.text} - ${team2Controller.text}";
+                      "${team1Controller.text} - ${team2Controller.text}";
+
+                  // Atualiza os dados do match ANTES de salvar no Hive
+                  match.scoreTeam1 = int.tryParse(team1Controller.text) ?? 0;
+                  match.scoreTeam2 = int.tryParse(team2Controller.text) ?? 0;
+
                 });
+
                 Navigator.pop(context);
               },
               child: const Text("Salvar"),
@@ -90,8 +122,8 @@ class MatchesScreenState extends State<MatchesScreen> {
     return "${team.player1.name} & ${team.player2.name}";
   }
 
-  void _updatePlayerPoints(
-      Match match, int newPointsTeam1, int newPointsTeam2) {
+  Future<void> _updatePlayerPoints(
+      Match match, int newPointsTeam1, int newPointsTeam2) async {
     final matchId = getMatchKey(match);
 
     // Se já havia um resultado registrado, removemos os pontos antigos
@@ -131,6 +163,19 @@ class MatchesScreenState extends State<MatchesScreen> {
             builder: (context) =>
                 LeaderboardScreen(playerPoints: playerPoints)),
       );
+    }
+  }
+
+  void _recalculatePointsFromSavedMatches() {
+    // Limpa os pontos anteriores
+    playerPoints.clear();
+    if (widget.matchBox.isNotEmpty) {
+      for (var match in widget.matchBox.values) {
+        // Só processa partidas que já têm placar
+        if (match.scoreTeam1 != null && match.scoreTeam2 != null) {
+          _updatePlayerPoints(match, match.scoreTeam1!, match.scoreTeam2!);
+        }
+      }
     }
   }
 
@@ -203,9 +248,9 @@ class MatchesScreenState extends State<MatchesScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    _buildMatchTile(match1),
+                    _buildMatchTile(match1, index),
                     const SizedBox(height: 10),
-                    _buildMatchTile(match2),
+                    _buildMatchTile(match2, index),
                   ],
                 ),
               ),
@@ -227,8 +272,21 @@ class MatchesScreenState extends State<MatchesScreen> {
     return "Rodada${match.round}_${allPlayers.join('_')}";
   }
 
-  Widget _buildMatchTile(Match match) {
+  Widget _buildMatchTile(Match match, int index) {
     String matchKey = getMatchKey(match);
+
+    // Itera sobre todas as partidas armazenadas no Hive
+    for (int i = 0; i < widget.matchBox.length; i++) {
+      final matchBoxItem = widget.matchBox.getAt(i);
+      if (matchBoxItem != null &&
+          getMatchKey(matchBoxItem) == matchKey &&
+          matchBoxItem.scoreTeam1 != null &&
+          matchBoxItem.scoreTeam2 != null) {
+        scores[matchKey] = "${matchBoxItem.scoreTeam1} - ${matchBoxItem.scoreTeam2}";
+        break; // encontrou e preencheu, pode parar
+      }
+    }
+
     bool hasScore = scores.containsKey(matchKey);
 
     return Container(
@@ -244,7 +302,7 @@ class MatchesScreenState extends State<MatchesScreen> {
           hasScore ? Icons.check_circle : Icons.edit,
           color: hasScore ? Colors.green : Colors.blue,
         ),
-        onTap: () => _showScoreDialog(match),
+        onTap: () => _showScoreDialog(match, index),
       ),
     );
   }

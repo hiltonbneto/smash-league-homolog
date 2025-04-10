@@ -16,6 +16,8 @@ class Super8ScreenState extends State<Super8Screen> {
   List<Player> players = [];
   final TextEditingController controller = TextEditingController();
   late Box<Player> playerBox;
+  late Box<Match> matchBox;
+  bool hasSavedMatches = false;
 
   @override
   void initState() {
@@ -25,7 +27,11 @@ class Super8ScreenState extends State<Super8Screen> {
 
   Future<void> _initHive() async {
     playerBox = Hive.box<Player>('players');
+    matchBox = Hive.box<Match>('matches');
     _loadPlayers();
+    setState(() {
+      hasSavedMatches = matchBox.isNotEmpty;
+    });
   }
 
   void _loadPlayers() {
@@ -34,22 +40,51 @@ class Super8ScreenState extends State<Super8Screen> {
     });
   }
 
+  void _resumeMatches() {
+    final savedMatches = matchBox.values.toList();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MatchesScreen(
+          matches: savedMatches,
+          matchBox: matchBox,
+        ),
+      ),
+    );
+  }
+
   Future<void> _addPlayer() async {
     final name = controller.text.trim();
 
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("O nome do jogador não pode estar vazio")),
+        const SnackBar(
+          content: Text(
+            "O nome do jogador não pode estar vazio!",
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(milliseconds: 1500),
+        ),
       );
       return;
     }
 
-    final exists = players.any(
-            (player) => player.name.toLowerCase() == name.toLowerCase());
+    final exists = players
+        .any((player) => player.name.toLowerCase() == name.toLowerCase());
 
     if (exists) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Este jogador já foi adicionado")),
+        const SnackBar(
+          content: Text(
+            "Esse jogador já está na lista!",
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(milliseconds: 1500),
+        ),
       );
       return;
     }
@@ -61,7 +96,15 @@ class Super8ScreenState extends State<Super8Screen> {
       _loadPlayers();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Jogador '$name' adicionado com sucesso")),
+        SnackBar(
+          content: Text(
+            "$name adicionado com sucesso!",
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(milliseconds: 1300),
+        ),
       );
     }
   }
@@ -93,7 +136,7 @@ class Super8ScreenState extends State<Super8Screen> {
                 ),
                 child: Padding(
                   padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                   child: Column(
                     children: [
                       TextField(
@@ -134,53 +177,83 @@ class Super8ScreenState extends State<Super8Screen> {
               Expanded(
                 child: players.isEmpty
                     ? const Center(
-                  child: Text(
-                    "Nenhum jogador adicionado ainda.",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                )
+                        child: Text(
+                          "Nenhum jogador adicionado ainda.",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      )
                     : ListView.builder(
-                  itemCount: players.length,
-                  itemBuilder: (context, index) {
-                    final player = players[index];
-                    return Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        itemCount: players.length,
+                        itemBuilder: (context, index) {
+                          final player = players[index];
+                          return Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 2,
+                            margin: const EdgeInsets.only(bottom: 10),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: const Color(0xFF009da7),
+                                child: Text(
+                                  "${index + 1}",
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                              title: Text(player.name),
+                              trailing: IconButton(
+                                icon:
+                                    const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () => _removePlayer(index),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                      elevation: 2,
-                      margin: const EdgeInsets.only(bottom: 10),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: const Color(0xFF009da7),
-                          child: Text(
-                            "${index + 1}",
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        title: Text(player.name),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete,
-                              color: Colors.red),
-                          onPressed: () => _removePlayer(index),
-                        ),
-                      ),
-                    );
-                  },
-                ),
               ),
+              if (hasSavedMatches)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _resumeMatches,
+                      icon: const Icon(
+                        Icons.restore,
+                        color: Colors.white,
+                      ),
+                      label: const Text(
+                        "Retomar Super 8",
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          backgroundColor: Colors.orange),
+                    ),
+                  ),
+                ),
               if (players.length == 8)
                 Padding(
                   padding: const EdgeInsets.only(top: 10),
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: () {
+                      onPressed: () async {
                         List<Match> partidas = _generateMatches(players);
+                        await matchBox.clear();
+                        for (var match in partidas) {
+                          await matchBox.add(match);
+                        }
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                MatchesScreen(matches: partidas),
+                            builder: (context) => MatchesScreen(
+                              matches: partidas,
+                              matchBox: matchBox,
+                            ),
                           ),
                         );
                       },
@@ -193,8 +266,8 @@ class Super8ScreenState extends State<Super8Screen> {
                       ),
                       icon: const Icon(Icons.play_arrow, color: Colors.white),
                       label: const Text(
-                        "Iniciar Jogos",
-                        style: TextStyle(color: Colors.white, fontSize: 18),
+                        "Iniciar novo Super 8",
+                        style: TextStyle(color: Colors.white, fontSize: 16),
                       ),
                     ),
                   ),

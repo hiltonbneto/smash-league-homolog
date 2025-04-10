@@ -20,6 +20,7 @@ Future<void> initHive() async {
   Hive.registerAdapter(TeamAdapter());
   Hive.registerAdapter(MatchAdapter());
   Hive.registerAdapter(RoundAdapter());
+  await Hive.openBox<Match>('matches');
   playerBox = await Hive.openBox<Player>('players');
 }
 
