@@ -55,22 +55,49 @@ class MatchesScreenState extends State<MatchesScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Registrar Resultado"),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: Colors.white,
+          title: const Text(
+            "Registrar Resultado",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF009DA7),
+            ),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                "Rodada ${match.round}\n${match.displayMatch}",
-                style: const TextStyle(fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
+                "Rodada ${match.round}",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 4),
+              Text(
+                match.displayMatch,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 20),
               TextField(
                 maxLength: 1,
                 controller: team1Controller,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: "Pontos de ${getTeamName(match.team1)}",
+                  labelStyle: const TextStyle(color: Color(0xFF009DA7)),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF009DA7)),
+                  ),
                   counterText: "",
                 ),
               ),
@@ -80,6 +107,10 @@ class MatchesScreenState extends State<MatchesScreen> {
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: "Pontos de ${getTeamName(match.team2)}",
+                  labelStyle: const TextStyle(color: Color(0xFF009DA7)),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF009DA7)),
+                  ),
                   counterText: "",
                 ),
               ),
@@ -88,7 +119,17 @@ class MatchesScreenState extends State<MatchesScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Cancelar"),
+              child: Text(
+                "Cancelar",
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+              style: TextButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
             ),
             TextButton(
               onPressed: () async {
@@ -102,14 +143,21 @@ class MatchesScreenState extends State<MatchesScreen> {
                   scores[matchId] =
                       "${team1Controller.text} - ${team2Controller.text}";
 
-                  // Atualiza os dados do match ANTES de salvar no Hive
                   match.scoreTeam1 = int.tryParse(team1Controller.text) ?? 0;
                   match.scoreTeam2 = int.tryParse(team2Controller.text) ?? 0;
-
                 });
 
                 Navigator.pop(context);
               },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: const Color(0xFF009DA7),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
               child: const Text("Salvar"),
             ),
           ],
@@ -282,7 +330,8 @@ class MatchesScreenState extends State<MatchesScreen> {
           getMatchKey(matchBoxItem) == matchKey &&
           matchBoxItem.scoreTeam1 != null &&
           matchBoxItem.scoreTeam2 != null) {
-        scores[matchKey] = "${matchBoxItem.scoreTeam1} - ${matchBoxItem.scoreTeam2}";
+        scores[matchKey] =
+            "${matchBoxItem.scoreTeam1} - ${matchBoxItem.scoreTeam2}";
         break; // encontrou e preencheu, pode parar
       }
     }

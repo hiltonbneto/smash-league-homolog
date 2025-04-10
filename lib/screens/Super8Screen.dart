@@ -256,6 +256,9 @@ class Super8ScreenState extends State<Super8Screen> {
                             ),
                           ),
                         );
+                        setState(() {
+                          hasSavedMatches = matchBox.isNotEmpty;
+                        });
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
@@ -266,7 +269,7 @@ class Super8ScreenState extends State<Super8Screen> {
                       ),
                       icon: const Icon(Icons.play_arrow, color: Colors.white),
                       label: const Text(
-                        "Iniciar novo Super 8",
+                        "Iniciar Super 8",
                         style: TextStyle(color: Colors.white, fontSize: 16),
                       ),
                     ),
@@ -285,7 +288,7 @@ class Super8ScreenState extends State<Super8Screen> {
     }
 
     List<Match> matches = [];
-
+    List<Player> shuffledPlayers = List.from(players)..shuffle(); // Embaralha os jogadores
     for (int round = 0; round < 7; round++) {
       List<Team> duplas = [];
 
@@ -295,8 +298,8 @@ class Super8ScreenState extends State<Super8Screen> {
 
         if (i == 0) b = 7;
 
-        var playerA = players[a];
-        var playerB = (b == 7) ? players[7] : players[b]; // Evita erro
+        var playerA = shuffledPlayers[a];
+        var playerB = (b == 7) ? shuffledPlayers[7] : shuffledPlayers[b]; // Evita erro
 
         var dupla = Team(player1: playerA, player2: playerB);
         duplas.add(dupla);
