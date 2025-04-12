@@ -1,22 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:smash_league/dto/player.dart';
 
 class LeaderboardScreen extends StatelessWidget {
-  final Map<Player, int> playerPoints;
+  final List<Map<String, dynamic>> serializedData;
 
-  const LeaderboardScreen({super.key, required this.playerPoints});
+  const LeaderboardScreen({super.key, required this.serializedData});
 
   @override
   Widget build(BuildContext context) {
+    final Map<Player, int> playerPoints = {
+      for (var item in serializedData)
+        Player.fromJson(item['player']): item['points'] as int,
+    };
+
     // Ordena os jogadores por pontos (do maior pro menor)
-    List<MapEntry<Player, int>> sortedPlayers = playerPoints.entries.toList()
+    final List<MapEntry<Player, int>> sortedPlayers = serializedData
+        .map((item) => MapEntry(Player.fromJson(item['player']), item['points'] as int))
+        .toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
     return Scaffold(
         appBar: AppBar(
-          title: const Text(
+          title: Text(
             "Classificação Final",
-            style: TextStyle(color: Colors.white),
+            style: GoogleFonts.montserrat(color: Colors.white),
           ),
           backgroundColor: Color(int.parse("0xFF009da7")),
         ),
@@ -26,7 +34,6 @@ class LeaderboardScreen extends StatelessWidget {
           itemBuilder: (context, index) {
             final player = sortedPlayers[index].key;
             final points = sortedPlayers[index].value;
-
             // Escolhe ícone e cor com base na posição
             Icon? rankIcon;
             Color? iconColor;
@@ -58,26 +65,24 @@ class LeaderboardScreen extends StatelessWidget {
                 leading: CircleAvatar(
                   backgroundColor: iconColor ?? Colors.blueGrey,
                   child: Text(
-                    player.name.substring(0, 1).toUpperCase(),
-                    style: const TextStyle(color: Colors.white),
+                    player.name != null ? player.name.substring(0, 1).toUpperCase() : "?",
+                    style: GoogleFonts.montserrat(color: Colors.white),
                   ),
                 ),
                 title: Text(
                   player.name,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 18),
+                  style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
                 subtitle: Text(
                   "${index + 1}º lugar",
-                  style: TextStyle(color: Colors.grey.shade600),
+                  style: GoogleFonts.montserrat(color: Colors.grey.shade600),
                 ),
                 trailing: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       "$points pts",
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 16),
+                      style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     if (rankIcon != null) rankIcon,
                   ],

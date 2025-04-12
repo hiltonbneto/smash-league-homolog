@@ -1,9 +1,11 @@
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:smash_league/dto/match.dart';
 import 'package:flutter/material.dart';
 import 'package:smash_league/dto/player.dart';
 import 'package:smash_league/dto/team.dart';
 import 'package:smash_league/screens/LeaderboardScreen.dart';
+import 'package:smash_league/utils/match_utils.dart';
 
 class MatchesScreen extends StatefulWidget {
   final List<Match> matches;
@@ -58,10 +60,10 @@ class MatchesScreenState extends State<MatchesScreen> {
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           backgroundColor: Colors.white,
-          title: const Text(
+          title: Text(
             "Registrar Resultado",
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: GoogleFonts.montserrat(
               fontSize: 22,
               fontWeight: FontWeight.bold,
               color: Color(0xFF009DA7),
@@ -72,7 +74,7 @@ class MatchesScreenState extends State<MatchesScreen> {
             children: [
               Text(
                 "Rodada ${match.round}",
-                style: TextStyle(
+                style: GoogleFonts.montserrat(
                   fontSize: 16,
                   color: Colors.grey[700],
                   fontWeight: FontWeight.w500,
@@ -82,7 +84,7 @@ class MatchesScreenState extends State<MatchesScreen> {
               Text(
                 match.displayMatch,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: GoogleFonts.montserrat(
                   fontSize: 16,
                   color: Colors.black87,
                 ),
@@ -94,7 +96,7 @@ class MatchesScreenState extends State<MatchesScreen> {
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: "Pontos de ${getTeamName(match.team1)}",
-                  labelStyle: const TextStyle(color: Color(0xFF009DA7)),
+                  labelStyle: GoogleFonts.montserrat(color: Color(0xFF009DA7)),
                   focusedBorder: const UnderlineInputBorder(
                     borderSide: BorderSide(color: Color(0xFF009DA7)),
                   ),
@@ -107,7 +109,7 @@ class MatchesScreenState extends State<MatchesScreen> {
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: "Pontos de ${getTeamName(match.team2)}",
-                  labelStyle: const TextStyle(color: Color(0xFF009DA7)),
+                  labelStyle: GoogleFonts.montserrat(color: Color(0xFF009DA7)),
                   focusedBorder: const UnderlineInputBorder(
                     borderSide: BorderSide(color: Color(0xFF009DA7)),
                   ),
@@ -121,7 +123,7 @@ class MatchesScreenState extends State<MatchesScreen> {
               onPressed: () => Navigator.pop(context),
               child: Text(
                 "Cancelar",
-                style: TextStyle(color: Colors.grey[600]),
+                style: GoogleFonts.montserrat(color: Colors.grey[600]),
               ),
               style: TextButton.styleFrom(
                 padding:
@@ -145,6 +147,8 @@ class MatchesScreenState extends State<MatchesScreen> {
 
                   match.scoreTeam1 = int.tryParse(team1Controller.text) ?? 0;
                   match.scoreTeam2 = int.tryParse(team2Controller.text) ?? 0;
+
+                  widget.matchBox.put(getMatchKey(match), match);
                 });
 
                 Navigator.pop(context);
@@ -205,11 +209,17 @@ class MatchesScreenState extends State<MatchesScreen> {
 
   void _finalizeTournament() {
     if (_allGamesScored()) {
+      List<Map<String, dynamic>> serializedPlayerPoints = playerPoints.entries
+          .map((entry) => {
+                'player': entry.key.toJson(),
+                'points': entry.value,
+              })
+          .toList();
       Navigator.push(
         context,
         MaterialPageRoute(
             builder: (context) =>
-                LeaderboardScreen(playerPoints: playerPoints)),
+                LeaderboardScreen(serializedData: serializedPlayerPoints)),
       );
     }
   }
@@ -232,7 +242,10 @@ class MatchesScreenState extends State<MatchesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Rodadas"),
-        titleTextStyle: const TextStyle(color: Colors.white, fontSize: 24),
+        titleTextStyle: GoogleFonts.montserrat(
+          color: Colors.white,
+          fontSize: 24,
+        ),
         backgroundColor: Color(int.parse("0xFF009da7")),
       ),
       body: Container(
@@ -257,9 +270,10 @@ class MatchesScreenState extends State<MatchesScreen> {
                       ),
                     ),
                     icon: const Icon(Icons.check, color: Colors.white),
-                    label: const Text(
+                    label: Text(
                       "Finalizar",
-                      style: TextStyle(color: Colors.white, fontSize: 20),
+                      style: GoogleFonts.montserrat(
+                          color: Colors.white, fontSize: 20),
                     ),
                   ),
                 ),
@@ -287,7 +301,7 @@ class MatchesScreenState extends State<MatchesScreen> {
                         const SizedBox(width: 8),
                         Text(
                           "Rodada ${match1.round}",
-                          style: const TextStyle(
+                          style: GoogleFonts.montserrat(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF009da7),
@@ -309,15 +323,17 @@ class MatchesScreenState extends State<MatchesScreen> {
     );
   }
 
-  String getMatchKey(Match match) {
-    final allPlayers = [
-      match.team1.player1.name,
-      match.team1.player2.name,
-      match.team2.player1.name,
-      match.team2.player2.name
-    ]..sort(); // ordena por nome para garantir consistência
+  bool _isWinner(Match match, Team team) {
+    if (match.scoreTeam1 == null || match.scoreTeam2 == null) return false;
 
-    return "Rodada${match.round}_${allPlayers.join('_')}";
+    if (team.player1.id == match.team1.player1.id &&
+        team.player2.id == match.team1.player2.id) {
+      return match.scoreTeam1! > match.scoreTeam2!;
+    } else if (team.player1.id == match.team2.player1.id &&
+        team.player2.id == match.team2.player2.id) {
+      return match.scoreTeam2! > match.scoreTeam1!;
+    }
+    return false;
   }
 
   Widget _buildMatchTile(Match match, int index) {
@@ -345,7 +361,33 @@ class MatchesScreenState extends State<MatchesScreen> {
         border: Border.all(color: Colors.grey.shade300),
       ),
       child: ListTile(
-        title: Text(match.displayMatch),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                    "${match.team1.player1.name} & ${match.team1.player2.name}"),
+                if (_isWinner(match, match.team1)) ...[
+                  const SizedBox(width: 6),
+                  const Icon(Icons.emoji_events,
+                      color: Colors.orange, size: 20),
+                ]
+              ],
+            ),
+            Row(
+              children: [
+                Text(
+                    "${match.team2.player1.name} & ${match.team2.player2.name}"),
+                if (_isWinner(match, match.team2)) ...[
+                  const SizedBox(width: 6),
+                  const Icon(Icons.emoji_events,
+                      color: Colors.orange, size: 20),
+                ]
+              ],
+            ),
+          ],
+        ),
         subtitle: hasScore ? Text("Resultado: ${scores[matchKey]}") : null,
         trailing: Icon(
           hasScore ? Icons.check_circle : Icons.edit,

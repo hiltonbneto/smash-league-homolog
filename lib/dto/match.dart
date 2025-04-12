@@ -20,7 +20,7 @@ class Match {
   @HiveField(4)
   int? scoreTeam2;
 
-  Match(this.team1, this.team2, this.round);
+  Match(this.team1, this.team2, this.round, {this.scoreTeam1, this.scoreTeam2});
 
   String get displayMatch => "${team1.displayName}\n${team2.displayName}";
 }

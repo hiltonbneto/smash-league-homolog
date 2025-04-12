@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:smash_league/dto/player.dart';
 import 'package:smash_league/dto/match.dart';
 import 'package:smash_league/dto/team.dart';
 import 'package:smash_league/screens/MatchesScreen.dart';
+import 'package:smash_league/utils/match_utils.dart';
+import 'package:uuid/uuid.dart';
 
 class Super8Screen extends StatefulWidget {
   const Super8Screen({super.key});
@@ -58,14 +61,14 @@ class Super8ScreenState extends State<Super8Screen> {
 
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
             "O nome do jogador não pode estar vazio!",
-            style: TextStyle(color: Colors.white),
+            style: GoogleFonts.montserrat(color: Colors.white),
           ),
           backgroundColor: Colors.orange,
           behavior: SnackBarBehavior.floating,
-          duration: Duration(milliseconds: 1500),
+          duration: const Duration(milliseconds: 1500),
         ),
       );
       return;
@@ -76,21 +79,21 @@ class Super8ScreenState extends State<Super8Screen> {
 
     if (exists) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
             "Esse jogador já está na lista!",
-            style: TextStyle(color: Colors.white),
+            style: GoogleFonts.montserrat(color: Colors.white),
           ),
           backgroundColor: Colors.orange,
           behavior: SnackBarBehavior.floating,
-          duration: Duration(milliseconds: 1500),
+          duration: const Duration(milliseconds: 1500),
         ),
       );
       return;
     }
 
     if (players.length < 8) {
-      final player = Player(name: name);
+      final player = Player(id: const Uuid().v4(), name: name);
       await playerBox.add(player);
       controller.clear();
       _loadPlayers();
@@ -99,7 +102,7 @@ class Super8ScreenState extends State<Super8Screen> {
         SnackBar(
           content: Text(
             "$name adicionado com sucesso!",
-            style: TextStyle(color: Colors.white),
+            style: GoogleFonts.montserrat(color: Colors.white),
           ),
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
@@ -120,7 +123,10 @@ class Super8ScreenState extends State<Super8Screen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Super 8"),
-        titleTextStyle: const TextStyle(color: Colors.white, fontSize: 24),
+        titleTextStyle: GoogleFonts.montserrat(
+          color: Colors.white,
+          fontSize: 24,
+        ),
         backgroundColor: const Color(0xFF009da7),
       ),
       body: Container(
@@ -156,9 +162,9 @@ class Super8ScreenState extends State<Super8Screen> {
                             Icons.add,
                             color: Colors.white,
                           ),
-                          label: const Text(
+                          label: Text(
                             "Adicionar Jogador",
-                            style: TextStyle(color: Colors.white),
+                            style: GoogleFonts.montserrat(color: Colors.white),
                           ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF009da7),
@@ -176,10 +182,10 @@ class Super8ScreenState extends State<Super8Screen> {
               const SizedBox(height: 20),
               Expanded(
                 child: players.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Text(
                           "Nenhum jogador adicionado ainda.",
-                          style: TextStyle(fontSize: 16),
+                          style: GoogleFonts.montserrat(fontSize: 16),
                         ),
                       )
                     : ListView.builder(
@@ -197,10 +203,10 @@ class Super8ScreenState extends State<Super8Screen> {
                                 backgroundColor: const Color(0xFF009da7),
                                 child: Text(
                                   "${index + 1}",
-                                  style: const TextStyle(color: Colors.white),
+                                  style: GoogleFonts.montserrat(color: Colors.white),
                                 ),
                               ),
-                              title: Text(player.name),
+                              title: Text(player.name ?? ''),
                               trailing: IconButton(
                                 icon:
                                     const Icon(Icons.delete, color: Colors.red),
@@ -222,9 +228,9 @@ class Super8ScreenState extends State<Super8Screen> {
                         Icons.restore,
                         color: Colors.white,
                       ),
-                      label: const Text(
+                      label: Text(
                         "Retomar Super 8",
-                        style: TextStyle(color: Colors.white, fontSize: 16),
+                        style: GoogleFonts.montserrat(color: Colors.white, fontSize: 16),
                       ),
                       style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -245,7 +251,7 @@ class Super8ScreenState extends State<Super8Screen> {
                         List<Match> partidas = _generateMatches(players);
                         await matchBox.clear();
                         for (var match in partidas) {
-                          await matchBox.add(match);
+                          await matchBox.put(getMatchKey(match), match);
                         }
                         Navigator.push(
                           context,
@@ -268,9 +274,9 @@ class Super8ScreenState extends State<Super8Screen> {
                         ),
                       ),
                       icon: const Icon(Icons.play_arrow, color: Colors.white),
-                      label: const Text(
+                      label: Text(
                         "Iniciar Super 8",
-                        style: TextStyle(color: Colors.white, fontSize: 16),
+                        style: GoogleFonts.montserrat(color: Colors.white, fontSize: 16),
                       ),
                     ),
                   ),

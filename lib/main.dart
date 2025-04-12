@@ -5,6 +5,8 @@ import 'package:smash_league/dto/match.dart';
 import 'package:smash_league/dto/round.dart';
 import 'package:smash_league/dto/team.dart';
 import 'package:smash_league/screens/HomeScreen.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,9 +31,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomeScreen(),
+      theme: ThemeData(
+        textTheme: GoogleFonts.montserratTextTheme(),
+        primaryColor: const Color(0xFF009da7),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF009DA7)),
+        useMaterial3: true,
+      ),
+      home: const HomeScreen(),
     );
   }
 }

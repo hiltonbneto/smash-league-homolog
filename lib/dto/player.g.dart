@@ -17,15 +17,18 @@ class PlayerAdapter extends TypeAdapter<Player> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return Player(
-      name: fields[0] as String,
+      id: fields[0] as String,
+      name: fields[1] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, Player obj) {
     writer
-      ..writeByte(1)
+      ..writeByte(2)
       ..writeByte(0)
+      ..write(obj.id)
+      ..writeByte(1)
       ..write(obj.name);
   }
 

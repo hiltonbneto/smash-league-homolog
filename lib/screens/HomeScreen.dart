@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:smash_league/screens/Super8Screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -9,16 +10,21 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Color(int.parse("0xFF009da7")),
       appBar: AppBar(
-        title: const Text("Smash League"),
-        titleTextStyle: const TextStyle(color: Colors.white, fontSize: 25),
-        backgroundColor: Color(int.parse("0xFF009da7")),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person),
+        title: Text(
+          "Smash League",
+          style: GoogleFonts.montserrat(
             color: Colors.white,
-            onPressed: () {},
+            fontSize: 24,
           ),
-        ],
+        ),
+        backgroundColor: Color(int.parse("0xFF009da7")),
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.person),
+        //     color: Colors.white,
+        //     onPressed: () {},
+        //   ),
+        // ],
       ),
       body: Center(
         child: Column(
@@ -56,7 +62,7 @@ class HomeScreen extends StatelessWidget {
       onPressed: onPressed,
       child: Text(
         text,
-        style: const TextStyle(
+        style: GoogleFonts.montserrat(
             fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
       ),
     );

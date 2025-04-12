@@ -20,19 +20,25 @@ class MatchAdapter extends TypeAdapter<Match> {
       fields[0] as Team,
       fields[1] as Team,
       fields[2] as int,
+      scoreTeam1: fields[3] as int?,
+      scoreTeam2: fields[4] as int?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Match obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.team1)
       ..writeByte(1)
       ..write(obj.team2)
       ..writeByte(2)
-      ..write(obj.round);
+      ..write(obj.round)
+      ..writeByte(3)
+      ..write(obj.scoreTeam1)
+      ..writeByte(4)
+      ..write(obj.scoreTeam2);
   }
 
   @override
