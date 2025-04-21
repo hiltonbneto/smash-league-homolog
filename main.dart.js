@@ -28364,8 +28364,8 @@ if(s==null)s=""
 r=o.h(a,"format")
 if(r==null)r=""
 q=J.el(o.h(a,"numberPlayer"))
-p=J.jR(t.j.a(o.h(a,"players")),new A.aeT(),t.Uo)
-p=A.ad(p,!0,p.$ti.i("aH.E"))
+if(o.h(a,"players")!=null){p=J.jR(t.j.a(o.h(a,"players")),new A.aeT(),t.Uo)
+p=A.ad(p,!0,p.$ti.i("aH.E"))}else p=A.a([],t.zU)
 o=o.h(a,"status")
 return new A.ha(n,s,r,q,p,o==null?"":o)},
 ha:function ha(a,b,c,d,e,f){var _=this
